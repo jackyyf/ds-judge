@@ -1,0 +1,36 @@
+compilers:
+  -
+    name: gcc
+    command: 'gcc -pipe -O2 -DJUDGE -march=native -std=gnu99 -Wall -Wconversion -Wextra -o {binary} {source}'
+    memory: 128M
+    time: 10s
+  -
+    name: g++
+    command: 'g++ -pipe -O2 -DJUDGE -march=native -Wall -Wconversion -Wextra -o {binary} {source}'
+    memory: 128M
+    time: 10s
+  -
+    name: g++11
+    command: 'g++ -pipe -O2 -DJUDGE -march=native -std=gnu++11 -Wall -Wconversion -Wextra -o {binary} {source}'
+    memory: 128M
+    time: 10s
+  -
+    name: clang
+    command: 'clang -pipe -O2 -DJUDGE -march=native -std=c99 -Wall -Wconversion -Wextra -o {binary} {source}'
+    memory: 128M
+    time: 10s
+  -
+    name: clang++
+    command: 'clang++ -pipe -O2 -DJUDGE -march=native -Wall -Wconversion -Wextra -o {binary} {source}'
+    memory: 128M
+    time: 10s
+  -
+    name: clang++11
+    command: 'clang++ -pipe -O2 -DJUDGE -march=native -std=c++11 -Wall -Wconversion -Wextra -o {binary} {source}'
+    memory: 128M
+    time: 10s
+  -
+    name: java
+    command: 'javac {source}'
+    memory: 256M
+    time: 10s

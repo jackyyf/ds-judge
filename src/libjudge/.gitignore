@@ -1,0 +1,5 @@
+autoconf/
+bin/
+build/
+*.o
+*.swp
