@@ -54,7 +54,7 @@ extern FILE* _log_file;
 	if (_log_level < _ERROR) break; \
 	if (_log_file == NULL) break; \
 	if (isatty(fileno(_log_file))) { \
-		fprintf(_log_file, STYLE_BRIGHT FORE_RED "[ERROR %s:%d] " fmt "\n" STYLE_RESET, __FILE__, __LINE__, ##__VA_ARGS__); \
+		fprintf(_log_file, FORE_RED "[ERROR %s:%d] " fmt "\n" STYLE_RESET, __FILE__, __LINE__, ##__VA_ARGS__); \
 	} else { \
 		fprintf(_log_file, "[ERROR %s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); \
 	} \
@@ -63,7 +63,7 @@ extern FILE* _log_file;
 #define log_fatal(fmt, ...) do { \
 	if (_log_file != NULL) { \
 		if (isatty(fileno(_log_file))) { \
-			fprintf(_log_file, FORE_YELLOW "[FATAL %s:%d] " fmt "\n" STYLE_RESET, __FILE__, __LINE__, ##__VA_ARGS__); \
+			fprintf(_log_file, STYLE_BRIGHT FORE_RED "[FATAL %s:%d] " fmt "\n" STYLE_RESET, __FILE__, __LINE__, ##__VA_ARGS__); \
 		} else { \
 			fprintf(_log_file, "[FATAL %s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); \
 		} \
