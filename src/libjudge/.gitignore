@@ -1,4 +1,4 @@
-autoconf/
+config/
 bin/
 build/
 *.o
