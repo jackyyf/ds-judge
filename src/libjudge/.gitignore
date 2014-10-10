@@ -1,5 +1,5 @@
-config/
 bin/
 build/
 *.o
 *.swp
+*.so.*

@@ -11,5 +11,6 @@ struct result {
 };
 
 struct result *libjudge_compile(const int lang, const char *source, const char *binary, struct limit *lim);
+struct result *libjudge_execute(const char *cmd[], struct limit *lim);
 
 #endif /* ifndef __LIBJUDGE_H */

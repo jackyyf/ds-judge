@@ -32,7 +32,7 @@ int apply_limit(struct limit *limit) {
 		}
 	}
 	if (likely(limit -> cpu_limit > 0)) {
-		lim.rlim_cur = (limit -> cpu_limit + 1000) / 1000; /* percision is 1 second. add some small overhead */
+		lim.rlim_cur = (limit -> cpu_limit + 999) / 1000; /* percision is 1 second. add some small overhead */
 		lim.rlim_max = lim.rlim_cur + 1;
 		log_debug("cpu limit: soft=%ld seconds, hard=%ld seconds", lim.rlim_cur, lim.rlim_max);
 		if (rarely(setrlimit(RLIMIT_CPU, &lim) < 0)) {

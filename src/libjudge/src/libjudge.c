@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
+#include <stdint.h>
 
 static pid_t child_pid;
 
@@ -39,21 +40,12 @@ static void alarm_handler(const int signal) {
 	log_info("pid=%d killed", child_pid);
 }
 
-struct result *libjudge_compile(const int lang, const char *source, const char *binary, struct limit *lim) {
+
+struct result *libjudge_execute(const char *cmd[], struct limit *lim) {
 	pid_t pid;
-	if (rarely(lang >= LANG_LENGTH)) {
-		log_fatal("language id %d is longer than installed language (%d)", lang, LANG_LENGTH);
-	}
-	if (rarely(source == NULL) || rarely(binary == NULL)) {
-		log_fatal("source and binary path should be specified");
-	}
-	if (rarely(lim == NULL)) {
-		log_warn("no limitation applied.");
-	}
-	log_info("language: %s, source: \"%s\", binary: \"%s\"", lang_name[lang], source, binary);
 	pid = fork();
 	if (rarely(pid < 0)) {
-		log_pfatal("vfork failed");
+		log_pfatal("fork failed");
 	}
 	if (pid != 0) {
 		/* parent */
@@ -66,7 +58,7 @@ struct result *libjudge_compile(const int lang, const char *source, const char *
 			}
 			memset(&timer.it_interval, 0, sizeof(struct timeval));
 			timer.it_value.tv_sec = lim -> time_limit / 1000;
-			timer.it_value.tv_sec = (lim -> time_limit % 1000) * 1000;
+			timer.it_value.tv_usec = (lim -> time_limit % 1000) * 1000;
 			setitimer(ITIMER_REAL, &timer, NULL);
 		}
 		if (rarely(wait4(pid, &(res->status), 0, &(res->usage)) < 0)) {
@@ -83,33 +75,53 @@ struct result *libjudge_compile(const int lang, const char *source, const char *
 	} else {
 		/* child */
 		log_info("child pid=%d", getpid());
-		const char *cmd[1024] = { NULL };
-		int i;
-		if (likely(lim != NULL)) {
-			/* force remove some limitation. */
-			lim -> fd_limit = LIM_NOLIMIT;
-			lim -> fs_limit = LIM_NOLIMIT;
-			lim -> chroot = NULL;
-			apply_limit(lim);
-		}
-		for (i = 0; compile_command[lang][i] != NULL; ++ i) {
-			if (strcmp(compile_command[lang][i], "{source}") == 0) {
-				cmd[i] = source;
-			} else if (strcmp(compile_command[lang][i], "{binary}") == 0) {
-				cmd[i] = binary;
-			} else {
-				cmd[i] = compile_command[lang][i];
-			}
-			log_debug("arg %d: %s", i, cmd[i]);
-		}
-		log_debug("arg length=%d", i);
-		cmd[i] = NULL;
 		/* do not check seccomp flag, compilers should not be jailed with seccomp filter. */
 		if (rarely(execvp(cmd[0], (char * const *)cmd) < 0)) {
 			log_perror("execvp %s failed", cmd[0]);
 			exit(253);
 		}
 		/* exec successfully, should not reach here, at all case. */
-		return NULL;
+		return (struct result *)(uintptr_t)0xDEADBEEF;
 	}
+
 }
+
+struct result *libjudge_compile(const int lang, const char *source, const char *binary, struct limit *lim) {
+	const char *cmd[1024] = { NULL };
+	int i;
+	if (rarely(lang >= LANG_LENGTH)) {
+		log_fatal("language id %d is longer than installed language (%d)", lang, LANG_LENGTH);
+	}
+	if (rarely(source == NULL) || rarely(binary == NULL)) {
+		log_fatal("source and binary path should be specified");
+	}
+	if (rarely(lim == NULL)) {
+		log_warn("no limitation applied.");
+	}
+	log_info("language: %s, source: \"%s\", binary: \"%s\"", lang_name[lang], source, binary);
+	for (i = 0; compile_command[lang][i] != NULL; ++ i) {
+		if (strcmp(compile_command[lang][i], "{source}") == 0) {
+			cmd[i] = source;
+		} else if (strcmp(compile_command[lang][i], "{binary}") == 0) {
+			cmd[i] = binary;
+		} else {
+			cmd[i] = compile_command[lang][i];
+		}
+		log_debug("arg %d: %s", i, cmd[i]);
+	}
+	log_debug("length=%d", i);
+	cmd[i] = NULL;
+	if (likely(lim != NULL)) {
+		/* force remove some limitation. */
+		lim -> fd_limit = LIM_NOLIMIT;
+		lim -> fs_limit = LIM_NOLIMIT;
+		lim -> chroot = NULL;
+		apply_limit(lim);
+	}
+	return libjudge_execute(cmd, lim);
+}
+
+/*
+struct result *libjudge_execute(const char *args[], struct limit *lim) {
+}
+*/

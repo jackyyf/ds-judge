@@ -1,0 +1,23 @@
+languages:
+  -
+    name: gcc
+    command: 'gcc -static -pipe -O2 -DJUDGE -march=native -std=gnu99 -Wall -Wconversion -Wextra -o {binary} {source}'
+  -
+    name: g++
+    command: 'g++ -static -pipe -O2 -DJUDGE -march=native -Wall -Wconversion -Wextra -o {binary} {source}'
+  -
+    name: g++11
+    command: 'g++ -static -pipe -O2 -DJUDGE -march=native -std=gnu++11 -Wall -Wconversion -Wextra -o {binary} {source}'
+  -
+    name: clang
+    command: 'clang -static -pipe -O2 -DJUDGE -march=native -std=c99 -Wall -Wconversion -Wextra -o {binary} {source}'
+  -
+    name: clang++
+    command: 'clang++ -static -pipe -O2 -DJUDGE -march=native -Wall -Wconversion -Wextra -o {binary} {source}'
+  -
+    name: clang++11
+    command: 'clang++ -static -pipe -O2 -DJUDGE -march=native -std=c++11 -Wall -Wconversion -Wextra -o {binary} {source}'
+  -
+    name: java
+    command: 'javac {source}'
+  
