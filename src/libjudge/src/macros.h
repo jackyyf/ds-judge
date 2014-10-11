@@ -30,4 +30,8 @@
 #define STYLE_NORMAL	_MAKE_CONTROL("22")
 #define STYLE_RESET		_MAKE_CONTROL("0")
 
+/* Some useful string utils */
+
+#define startswith(src, needle) ( strncmp( (src), (needle), strlen(needle)) == 0 )
+
 #endif /* ifndef __MACROS_H */

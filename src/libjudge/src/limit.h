@@ -22,8 +22,9 @@ struct limit {
 	uid_t user; /* user to run the program, 0 means unchanged */
 	gid_t group; /* group to run the program, 0 means unchanged */
 	char *chroot; /* NULL for no chroot jail */
-	char *stdin_file; /* if you need to redirect stdin to some file */
-	char *stdout_file; /* if you need to redirect stdout to some file */
+	char *stdin_file; /* if you need to redirect stdin to some file or fd */
+	char *stdout_file; /* if you need to redirect stdout to some file or fd */
+	char *stderr_file; /* if you need to redirect stderr to some file or fd */
 	bool close_fd; /* close unused fd */
 	bool use_seccomp; /* use seccomp syscall filter if true */
 };

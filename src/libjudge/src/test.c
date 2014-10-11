@@ -29,6 +29,11 @@ int main(int argc, char *argv[]) {
 	lim.user = 0;
 	lim.group = 0;
 	struct result *res = libjudge_compile(0, argv[1], "/dev/null", &lim);
+	log_info("cpu usage: %ld.%06ld seconds user, %ld.%06ld seconds sys",
+		res -> usage.ru_utime.tv_sec, res -> usage.ru_utime.tv_usec,
+		res -> usage.ru_stime.tv_sec, res -> usage.ru_stime.tv_usec
+	);
+	log_info("peak memory usage: %ld KiB", res -> usage.ru_maxrss);
 	log_info("exitcode=%d", res->status);
 	printf("exitcode=%d\n", res->status);
 	exit(!!res->status);

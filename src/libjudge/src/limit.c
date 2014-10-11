@@ -43,33 +43,85 @@ int apply_limit(struct limit *limit) {
 	}
 
 	if (limit -> stdin_file != NULL) {
-		int fd = open(limit -> stdin_file, O_RDONLY);
-		if (rarely(fd < 0)) {
-			log_perror("open %s", limit -> stdin_file);
-			_exit(254);
+		int fd = -1;
+		if (startswith(limit -> stdin_file, "file:")) {
+			log_debug("redirect stdin to file: %s", limit -> stdin_file + 5);
+			fd = open(limit -> stdin_file + 5, O_RDONLY); /* remove file: prefix */
+			if (rarely(fd < 0)) {
+				log_perror("open %s", limit -> stdin_file + 5);
+				_exit(254);
+			}
+			log_debug("open file %s, fd=%d", limit -> stdin_file, fd);
+		} else if (startswith(limit -> stdin_file, "fd:")) {
+			log_debug("redirect stdin to fd: %s", limit -> stdin_file + 3);
+			if (rarely(sscanf(limit -> stdin_file + 3, "%d", &fd) != 1)) {
+				fd = -1;
+				log_error("invalid fd number: %s", limit -> stdin_file + 3);
+			}
 		}
-		log_debug("open file %s, fd=%d", limit -> stdin_file, fd);
-		if (rarely(dup2(fd, 0))) {
-			log_perror("redirect stdin to %s", limit -> stdin_file);
-			_exit(254);
+		if (likely(fd >= 0)) {
+			if (rarely(dup2(fd, 0) < 0)) {
+				log_perror("redirect stdin to fd %d", fd);
+				_exit(254);
+			}
+			if (likely(fd != 0)) /* rare case that fd is 0 */
+				close(fd);
 		}
-		if (likely(fd != 0)) /* rare case that fd is 0 */
-			close(fd);
 	}
 
 	if (limit -> stdout_file != NULL) {
-		int fd = open(limit -> stdout_file, O_WRONLY|O_CREAT, S_IRWXU); /* permission 700 */
-		if (rarely(fd < 0)) {
-			log_perror("open %s", limit -> stdout_file);
-			_exit(254);
+		int fd = -1;
+		if (startswith(limit -> stdout_file, "file:")) {
+			log_debug("redirect stdout to file: %s", limit -> stdout_file + 5);
+			fd = open(limit -> stdout_file + 5, O_WRONLY|O_CREAT, S_IRWXU); /* remove file: prefix, permission 700 */
+			if (rarely(fd < 0)) {
+				log_perror("open %s", limit -> stdout_file + 5);
+				_exit(254);
+			}
+			log_debug("open file %s, fd=%d", limit -> stdout_file, fd);
+		} else if (startswith(limit -> stdout_file, "fd:")) {
+			log_debug("redirect stdout to fd: %s", limit -> stdout_file + 3);
+			if (rarely(sscanf(limit -> stdout_file + 3, "%d", &fd) != 1)) {
+				fd = -1;
+				log_error("invalid fd number: %s", limit -> stdout_file + 3);
+			}
 		}
-		log_debug("open file %s, fd=%d", limit -> stdout_file, fd);
-		if (rarely(dup2(fd, 1))) {
-			log_perror("redirect stdout to %s", limit -> stdout_file);
-			_exit(254);
+		if (likely(fd >= 0)) {
+			if (rarely(dup2(fd, 1) < 0)) {
+				log_perror("redirect stdout to fd %d", fd);
+				_exit(254);
+			}
+			if (likely(fd != 0)) /* rare case that fd is 0 */
+				close(fd);
 		}
-		if (rarely(fd != 1))
-			close(fd);
+	}
+
+	if (limit -> stderr_file != NULL) {
+		int fd = -1;
+		if (startswith(limit -> stderr_file, "file:")) {
+			log_debug("redirect stderr to file: %s", limit -> stderr_file + 5);
+			fd = open(limit -> stderr_file + 5, O_WRONLY|O_CREAT, S_IRWXU); /* remove file: prefix, permission 700 */
+			if (rarely(fd < 0)) {
+				log_perror("open %s", limit -> stderr_file + 5);
+				_exit(254);
+			}
+			log_debug("open file %s, fd=%d", limit -> stderr_file, fd);
+		} else if (startswith(limit -> stderr_file, "fd:")) {
+			log_debug("redirect stderr to fd: %s", limit -> stderr_file + 3);
+			if (rarely(sscanf(limit -> stderr_file + 3, "%d", &fd) != 1)) {
+				fd = -1;
+				log_error("invalid fd number: %s", limit -> stderr_file + 3);
+			}
+		}
+		if (likely(fd >= 0)) {
+			if (rarely(dup2(fd, 2) < 0)) {
+				log_perror("redirect stderr to fd %d", fd);
+				_exit(254);
+			}
+			log_level(_SUPRESS);
+			if (likely(fd != 0)) /* rare case that fd is 0 */
+				close(fd);
+		}
 	}
 
 	if (likely(limit -> fd_limit > 0)) {
@@ -97,12 +149,12 @@ int apply_limit(struct limit *limit) {
 		if (limit -> user > 0 && limit -> user != getuid()) {
 			log_warn("unable to setuid %d, i'm not root.", limit -> user);
 		} else {
-			log_info("we are currently uid %d, not changing.", limit -> user);
+			log_info("we are currently uid %d, not changing.", getuid());
 		}
 		if (limit -> group > 0 && limit -> group != getgid()) {
 			log_warn("unable to setgid %d, i'm not root.", limit -> group);
 		} else {
-			log_info("we are currently gid %d, not changing.", limit -> group);
+			log_info("we are currently gid %d, not changing.", getgid());
 		}
 		if (limit -> chroot != NULL) {
 			log_warn("unable to chroot to %s, i'm not root.", limit -> chroot);

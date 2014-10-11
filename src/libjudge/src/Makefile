@@ -1,4 +1,5 @@
 CFLAGS=-Wall -fPIC -DPIC -march=native -Werror
+LDLIBS=-lrt -lc
 
 debug: CFLAGS+=-g -Og
 debug: build
@@ -7,7 +8,7 @@ release: CFLAGS+=-O2
 release: build
 
 build: limit.o libjudge.o logger.o
-	gcc $(CFLAGS) -shared -Wl,-soname,libjudge.so.0 -o libjudge.so.0 limit.o libjudge.o logger.o -lc
+	gcc $(CFLAGS) $(LDLIBS) -shared -Wl,-soname,libjudge.so.0 -o libjudge.so.0 limit.o libjudge.o logger.o
 
 language:
 	python ../generator/lang.py
